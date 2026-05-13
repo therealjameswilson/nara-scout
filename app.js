@@ -23,9 +23,10 @@ const WITHDRAWAL_RE = /withdraw(al)?\s*(sheet|notice|card)|NA\s*Form\s*1402[13]/
 
 const $ = id => document.getElementById(id);
 
-// Restore API key
+// Default shared key (override by pasting your own)
+const DEFAULT_KEY = 'C6O0DyEcap6taVb24zymF5AOMQvwTXsa7q0ZH8cN';
 const saved = localStorage.getItem('nara_api_key');
-if (saved) $('apikey').value = saved;
+$('apikey').value = saved || DEFAULT_KEY;
 $('apikey').addEventListener('change', () => {
   localStorage.setItem('nara_api_key', $('apikey').value.trim());
 });
