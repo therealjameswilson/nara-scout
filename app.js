@@ -1,8 +1,23 @@
 // NARA Scout - FRUS compiler research tool
-// Searches the National Archives Catalog API v2
+// Searches the National Archives Catalog API v2 via a CORS-friendly proxy.
 // Three workflows: (A) declassified docs, (B) withdrawal sheets, (C) unprocessed series
+//
+// The NARA Catalog API does not return CORS headers, so a static site cannot
+// call it from the browser. NARA Scout routes requests through a tiny
+// Cloudflare Worker (see ./worker/). The Worker only forwards requests and
+// adds CORS headers; the API key is shipped in this file so colleagues can
+// just open the page and search.
 
-const API = 'https://catalog.archives.gov/api/v2/records/search';
+// === REPLACE THIS with the *.workers.dev URL Cloudflare gives you ===========
+// See worker/README.md for the 3-minute setup.
+const PROXY_URL = 'https://nara-proxy.mzqmpgyvdv.workers.dev';
+
+// Shared NARA Catalog API key (api.data.gov). Exposed in public JS by design,
+// per the project owner. Rate limit is per-key, so a busy day across many
+// colleagues could hit the cap; rotate at https://api.data.gov/signup/ if so.
+const API_KEY = 'C6O0DyEcap6taVb24zymF5AOMQvwTXsa7q0ZH8cN';
+
+const NARA_PATH = '/records/search';
 
 const NAIDS = {
   // Bush 41 collections
@@ -23,14 +38,6 @@ const WITHDRAWAL_RE = /withdraw(al)?\s*(sheet|notice|card)|NA\s*Form\s*1402[13]/
 
 const $ = id => document.getElementById(id);
 
-// Default shared key (override by pasting your own)
-const DEFAULT_KEY = 'C6O0DyEcap6taVb24zymF5AOMQvwTXsa7q0ZH8cN';
-const saved = localStorage.getItem('nara_api_key');
-$('apikey').value = saved || DEFAULT_KEY;
-$('apikey').addEventListener('change', () => {
-  localStorage.setItem('nara_api_key', $('apikey').value.trim());
-});
-
 $('clear').addEventListener('click', () => {
   $('q').value = ''; $('from').value = ''; $('to').value = '';
   $('results').innerHTML = ''; $('pager').innerHTML = '';
@@ -43,10 +50,10 @@ let currentPage = 0;
 $('go').addEventListener('click', () => { currentPage = 0; runSearch(); });
 $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { currentPage = 0; runSearch(); } });
 
-function classify(src) {
-  const title = (src.title || '').toString().toLowerCase();
-  const desc = (src.scopeAndContentNote || src.description || '').toString();
-  const online = !!src.availableOnline;
+function classify(rec) {
+  const title = (rec.title || '').toString().toLowerCase();
+  const desc = (rec.scopeAndContentNote || '').toString();
+  const online = Array.isArray(rec.digitalObjects) && rec.digitalObjects.length > 0;
 
   if (WITHDRAWAL_RE.test(title) || WITHDRAWAL_RE.test(desc)) return 'withdrawal';
   if (online) return 'declassified';
@@ -55,10 +62,6 @@ function classify(src) {
 }
 
 async function runSearch() {
-  const key = $('apikey').value.trim();
-  if (!key) { setStatus('Enter your NARA API key above.'); return; }
-  localStorage.setItem('nara_api_key', key);
-
   const q = $('q').value.trim();
   const from = $('from').value.trim();
   const to = $('to').value.trim();
@@ -81,12 +84,18 @@ async function runSearch() {
   $('results').innerHTML = ''; $('pager').innerHTML = ''; $('summary').textContent = '';
 
   try {
-    const r = await fetch(API + '?' + params.toString(), {
-      headers: { 'x-api-key': key, 'Accept': 'application/json' }
+    const r = await fetch(PROXY_URL.replace(/\/+$/, '') + NARA_PATH + '?' + params.toString(), {
+      headers: { 'x-api-key': API_KEY, 'Accept': 'application/json' }
     });
-    if (!r.ok) { setStatus('Error ' + r.status + ': ' + (await r.text()).slice(0, 200)); return; }
+    if (!r.ok) {
+      const text = (await r.text()).slice(0, 300);
+      setStatus('Error ' + r.status + ': ' + text);
+      return;
+    }
     render(await r.json(), limit);
-  } catch (err) { setStatus('Network error: ' + err.message); }
+  } catch (err) {
+    setStatus('Network error: ' + err.message);
+  }
 }
 
 function setStatus(msg) { $('status').textContent = msg; }
@@ -94,11 +103,13 @@ function setStatus(msg) { $('status').textContent = msg; }
 function render(data, limit) {
   const body = data.body || data;
   const hits = (body.hits && body.hits.hits) || body.results || [];
-  const total = (body.hits && body.hits.total && (body.hits.total.value ?? body.hits.total)) || body.totalResults || hits.length;
+  const totalRaw = body.hits && body.hits.total;
+  const total = (totalRaw && (totalRaw.value ?? totalRaw)) || body.totalResults || hits.length;
 
   const classified = hits.map(h => {
-    const src = h._source || h.record || h;
-    return { src, hit: h, cat: classify(src) };
+    const src = h._source || {};
+    const rec = src.record || src;
+    return { rec, hit: h, cat: classify(rec) };
   });
 
   const showD = $('f_declassified').checked;
@@ -122,12 +133,14 @@ function render(data, limit) {
 
   const ol = $('results');
   ol.innerHTML = '';
-  for (const { src, cat } of visible) {
-    const naid = src.naId || src.naid || '';
-    const title = (src.title || src.recordTitle || 'Untitled').toString();
-    const desc = (src.scopeAndContentNote || src.description || '').toString();
-    const dates = (src.productionDate && (src.productionDate.logicalDate || src.productionDate)) || src.coverageDates || '';
-    const ancestors = (src.ancestors || []).map(a => a.title || a.collectionTitle).filter(Boolean).slice(0, 2);
+  for (const { rec, cat } of visible) {
+    const naid = rec.naId || '';
+    const title = (rec.title || 'Untitled').toString();
+    const desc = (rec.scopeAndContentNote || '').toString();
+    const startY = rec.coverageStartDate && rec.coverageStartDate.year;
+    const endY = rec.coverageEndDate && rec.coverageEndDate.year;
+    const dates = startY && endY ? (startY === endY ? String(startY) : startY + '–' + endY) : (startY || endY || '');
+    const ancestors = (rec.ancestors || []).map(a => a.title || a.collectionTitle).filter(Boolean).slice(0, 2);
 
     const badge = cat === 'declassified' ? '<span class="badge badge-declass">DECLASSIFIED ONLINE</span>'
                 : cat === 'withdrawal'   ? '<span class="badge badge-withdraw">WITHDRAWAL SHEET</span>'
