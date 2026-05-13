@@ -14,17 +14,27 @@
 <div class="inner">
 <div class="seal">Office of the Historian &middot; U.S. Department of State</div>
 <h1>NARA SCOUT</h1>
-<h2>A Reconnaissance Tool for the Foreign Relations of the United States</h2>
+<h2>A Reconnaissance Tool for FRUS Compilers</h2>
 <div class="rule"></div>
-<div class="volume">Bush 41 &middot; Clinton &middot; National Security Council &amp; Presidential Files</div>
+<div class="volume">Declassified Documents &middot; Withdrawal Sheets &middot; Unprocessed Series</div>
 </div>
 </header>
 <main>
 <section class="panel">
+<h3>Purpose</h3>
+<p style="margin:.2rem 0 .4rem;font-size:.95rem">Scout the Bush 41 and Clinton presidential records at NARA for three FRUS-compiler workflows simultaneously:</p>
+<ol style="margin:.2rem 0 .2rem 1.2rem;font-size:.92rem;color:#2a221c">
+<li><strong style="color:var(--frus-red)">Harvest declassified documents</strong> for possible inclusion in FRUS volumes.</li>
+<li><strong style="color:var(--frus-red)">Inventory withdrawal sheets</strong> to identify classified material still requiring MDR/FOIA.</li>
+<li><strong style="color:var(--frus-red)">Map unprocessed collections</strong> that lack descriptive data, for research planning.</li>
+</ol>
+</section>
+
+<section class="panel">
 <h3>Credentials</h3>
 <label for="apikey">NARA Catalog API Key</label>
 <input type="password" id="apikey" placeholder="paste your api.data.gov key" autocomplete="off">
-<div class="note">Your key is stored only in this browser (localStorage). Request a free key at <a href="https://www.archives.gov/developer" target="_blank" rel="noopener">archives.gov/developer</a>.</div>
+<div class="note">Stored only in this browser (localStorage). Request a key at <a href="https://www.archives.gov/developer" target="_blank" rel="noopener">archives.gov/developer</a>.</div>
 </section>
 
 <section class="panel">
@@ -36,6 +46,7 @@
 <div><label for="to">To (year)</label><input type="number" id="to" min="1989" max="2001" placeholder="2001"></div>
 <div><label for="limit">Per page</label><select id="limit"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></div>
 </div>
+
 <label style="margin-top:1rem">Collections</label>
 <div class="checks">
 <label><input type="checkbox" data-naid="BUSH_NSC" checked> Bush NSC Files</label>
@@ -45,7 +56,15 @@
 <label><input type="checkbox" data-naid="BUSH_ALL"> All Bush Presidential Records</label>
 <label><input type="checkbox" data-naid="CLINTON_ALL"> All Clinton Presidential Records</label>
 </div>
-<label style="margin-top:.8rem"><input type="checkbox" id="online" checked style="transform:scale(1.1);margin-right:.4rem;accent-color:var(--frus-red)"> Available online only</label>
+
+<label style="margin-top:1rem">Record-type filters (FRUS workflows)</label>
+<div class="checks">
+<label><input type="checkbox" id="f_declassified" checked> A. Declassified (available online)</label>
+<label><input type="checkbox" id="f_withdrawal" checked> B. Withdrawal sheets / MDR candidates</label>
+<label><input type="checkbox" id="f_unprocessed" checked> C. Unprocessed / no description</label>
+<label><input type="checkbox" id="f_other"> Other records (uncategorized)</label>
+</div>
+
 <div class="actions">
 <button class="primary" id="go">Search the Archives</button>
 <button class="ghost" id="clear">Clear</button>
@@ -55,6 +74,7 @@
 
 <section class="panel" id="resultsPanel" style="display:none">
 <h3>Findings</h3>
+<div id="summary" style="font-size:.88rem;color:var(--frus-red-dark);margin-bottom:.6rem;font-variant:small-caps;letter-spacing:.08em"></div>
 <ol class="results" id="results"></ol>
 <div class="pager" id="pager"></div>
 </section>
