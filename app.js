@@ -217,15 +217,57 @@ function cacheKey(naid, q, from, to, level, perColl) {
   return ['nsc', naid, q || '', from || '', to || '', level || '', perColl].join('|');
 }
 
+// =====================================================================
+// Query sanitizer
+// =====================================================================
+// NARA's catalog API (api/v2/records/search) has an edge case where certain
+// `q` values containing double-quoted phrases get misrouted to the catalog
+// HTML homepage instead of the JSON handler — silently returning 0 results.
+// Verified May 2026: a query with ~10 OR-clauses AND any double-quoted phrase
+// (e.g. "Nunn-Lugar", "Iran Contra", "Northern Ireland") triggers this.
+//
+// Since NARA tokenizes on whitespace and hyphens anyway:
+//   "Nunn-Lugar"      ≡ Nunn-Lugar         (identical recall)
+//   "Northern Ireland" → Northern AND Ireland (slight recall increase)
+// The safe fix is to strip all double-quotes before sending the query. This
+// preserves intent for hyphenated terms exactly, and broadens phrase searches
+// minimally — perfectly acceptable for a discovery tool whose purpose is to
+// surface relevant collections rather than execute strict phrase queries.
+function sanitizeQuery(q) {
+  if (!q) return q;
+  // Strip ASCII double-quotes ("), curly double-quotes (“ ”), and any
+  // stray smart single quotes that wrap tokens — none of these are honored
+  // as phrase delimiters by NARA's API uniformly, and they're what trigger
+  // the misrouting bug.
+  return q.replace(/["\u201C\u201D]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// Detect when the proxy returned the catalog HTML page instead of JSON.
+async function readJsonOrFlagHtml(response) {
+  const ct = (response.headers.get('content-type') || '').toLowerCase();
+  const text = await response.text();
+  if (ct.includes('text/html') || /^\s*<!doctype html/i.test(text) || /^\s*<html/i.test(text)) {
+    const err = new Error('NARA API misrouted query (returned HTML). Try simplifying the query.');
+    err.isHtmlMisroute = true;
+    throw err;
+  }
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error('Non-JSON response from NARA API: ' + text.slice(0, 80));
+  }
+}
+
 async function fetchOne(naid, q, from, to, level, perColl, signal) {
-  const k = cacheKey(naid, q, from, to, level, perColl);
+  const cleanQ = sanitizeQuery(q);
+  const k = cacheKey(naid, cleanQ, from, to, level, perColl);
   try {
     const cached = sessionStorage.getItem(k);
     if (cached) return { naid, ...JSON.parse(cached), cached: true };
   } catch (e) {}
 
   const params = new URLSearchParams();
-  if (q) params.append('q', q);
+  if (cleanQ) params.append('q', cleanQ);
   params.append('ancestorNaId', naid);
   if (from)  params.append('startDate', from);
   if (to)    params.append('endDate', to);
@@ -238,7 +280,7 @@ async function fetchOne(naid, q, from, to, level, perColl, signal) {
       signal,
     });
     if (!r.ok) return { naid, hits: [], total: 0, error: 'HTTP ' + r.status };
-    const json = await r.json();
+    const json = await readJsonOrFlagHtml(r);
     const body = json.body || json;
     const hits = (body.hits && body.hits.hits) || [];
     const totalRaw = body.hits && body.hits.total;
@@ -248,7 +290,7 @@ async function fetchOne(naid, q, from, to, level, perColl, signal) {
     return { naid, ...payload };
   } catch (err) {
     if (err.name === 'AbortError') return { naid, hits: [], total: 0, aborted: true };
-    return { naid, hits: [], total: 0, error: err.message };
+    return { naid, hits: [], total: 0, error: err.message, isHtmlMisroute: !!err.isHtmlMisroute };
   }
 }
 
@@ -759,14 +801,14 @@ async function refreshCollectionLists() {
 
 async function discoverCollections(adminQuery, titleMustContain) {
   const params = new URLSearchParams();
-  params.append('q', adminQuery);
+  params.append('q', sanitizeQuery(adminQuery));
   params.append('levelOfDescription', 'collection');
   params.append('limit', '300');
   const r = await fetch(PROXY_URL.replace(/\/+$/, '') + NARA_PATH + '?' + params.toString(), {
     headers: { 'x-api-key': API_KEY, 'Accept': 'application/json' }
   });
   if (!r.ok) throw new Error('HTTP ' + r.status);
-  const json = await r.json();
+  const json = await readJsonOrFlagHtml(r);
   const body = json.body || json;
   const hits = (body.hits && body.hits.hits) || [];
   return hits.map(h => {
