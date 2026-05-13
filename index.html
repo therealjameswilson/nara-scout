@@ -25,9 +25,15 @@
 <p style="margin:.2rem 0 .4rem;font-size:.95rem">Scout the Bush 41 and Clinton presidential records at NARA for three FRUS-compiler workflows:</p>
 <ol style="margin:.2rem 0 .2rem 1.2rem;font-size:.92rem;color:#2a221c">
 <li><strong style="color:var(--frus-red)">Harvest declassified documents</strong> for possible inclusion in FRUS volumes.</li>
-<li><strong style="color:var(--frus-red)">Inventory withdrawal sheets</strong> to identify classified material still requiring MDR/FOIA.</li>
+<li><strong style="color:var(--frus-red)">Inventory withdrawal sheets &amp; MDR candidates</strong> (records marked FOIA/PRA-restricted).</li>
 <li><strong style="color:var(--frus-red)">Map unprocessed collections</strong> that lack descriptive data, for research planning.</li>
 </ol>
+</section>
+
+<section class="panel">
+<h3>Topic Packs</h3>
+<p class="hint">One click loads a curated query, date range, and scope tuned to a FRUS volume's subject. Click any pack to apply it; click Search to run it.</p>
+<div id="topicPacks" class="topic-grid"></div>
 </section>
 
 <section class="panel">
@@ -37,16 +43,48 @@
 <div class="row three">
 <div><label for="from">From (year)</label><input type="number" id="from" min="1989" max="2001" placeholder="1989"></div>
 <div><label for="to">To (year)</label><input type="number" id="to" min="1989" max="2001" placeholder="2001"></div>
-<div><label for="limit">Per page</label><select id="limit"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></div>
+<div><label for="sort">Sort by</label><select id="sort">
+  <option value="relevance">Relevance (NARA default)</option>
+  <option value="date-asc">Earliest first</option>
+  <option value="date-desc">Latest first</option>
+  <option value="title">Title (A&ndash;Z)</option>
+</select></div>
+</div>
+<div class="row three">
+<div><label for="level">Level</label><select id="level">
+  <option value="">Any level</option>
+  <option value="fileUnit">File units (folders)</option>
+  <option value="item">Items</option>
+</select></div>
+<div><label for="perColl">Per-collection limit</label><select id="perColl">
+  <option>10</option><option selected>25</option><option>50</option><option>100</option>
+</select></div>
+<div><label for="perPage">Show per page</label><select id="perPage">
+  <option>25</option><option selected>50</option><option>100</option><option>200</option>
+</select></div>
+</div>
+
+<label style="margin-top:1rem">Quick scopes</label>
+<div class="checks quick-scopes">
+<label><input type="checkbox" id="qs_nsc_only"> NSC only (both admins)</label>
+<label><input type="checkbox" id="qs_econ_only"> Econ &amp; cabinet only (NEC, DPC, Cabinet Affairs)</label>
+<label><input type="checkbox" id="qs_nonprolif"> Nonproliferation focus</label>
+<label><input type="checkbox" id="qs_regional_europe"> NSC: European/Soviet Affairs</label>
+<label><input type="checkbox" id="qs_regional_asia"> NSC: Asian Affairs</label>
+<label><input type="checkbox" id="qs_regional_lat"> NSC: Latin American Affairs</label>
+<label><input type="checkbox" id="qs_regional_africa"> NSC: African Affairs (Clinton)</label>
+<label><input type="checkbox" id="qs_regional_me"> NSC: Near East &amp; South Asia</label>
 </div>
 
 <label style="margin-top:1rem">Administration scope</label>
 <div class="checks">
-<label><input type="checkbox" id="scope_bush41" checked> All Bush 41 collections (70)</label>
-<label><input type="checkbox" id="scope_clinton" checked> All Clinton administration collections (132)</label>
+<label><input type="checkbox" id="scope_bush41" checked> All Bush 41 collections <span class="count" id="count_bush41"></span></label>
+<label><input type="checkbox" id="scope_clinton" checked> All Clinton administration collections <span class="count" id="count_clinton"></span></label>
 </div>
 
-<label style="margin-top:1rem">Featured sub-collections (use these alone or alongside the umbrella scopes for a tighter search)</label>
+<details style="margin-top:.6rem">
+<summary>Featured sub-collections</summary>
+<p class="hint">Use these alone for a tighter scope (uncheck the admin umbrellas above).</p>
 <div class="checks featured">
 <label><input type="checkbox" data-naid="2163580"> Bush NSC Files</label>
 <label><input type="checkbox" data-naid="2579957"> Bush Office of the Vice President</label>
@@ -54,30 +92,62 @@
 <label><input type="checkbox" data-naid="488763126"> Bush National Space Council</label>
 <label><input type="checkbox" data-naid="7386739"> Clinton NSC Executive Secretary</label>
 <label><input type="checkbox" data-naid="7388773"> Clinton NSC Nonproliferation &amp; Export Controls</label>
+<label><input type="checkbox" data-naid="7386505"> Clinton NSC European Affairs</label>
+<label><input type="checkbox" data-naid="7385959"> Clinton NSC African Affairs</label>
 <label><input type="checkbox" data-naid="2525022"> Clinton National Economic Council</label>
 <label><input type="checkbox" data-naid="612954"> Clinton Domestic Policy Council</label>
 </div>
+</details>
 
 <label style="margin-top:1rem">Record-type filters (FRUS workflows)</label>
 <div class="checks">
-<label><input type="checkbox" id="f_declassified" checked> A. Declassified (available online)</label>
-<label><input type="checkbox" id="f_withdrawal" checked> B. Withdrawal sheets / MDR candidates</label>
+<label><input type="checkbox" id="f_declassified" checked> A. Declassified (digitized online)</label>
+<label><input type="checkbox" id="f_withdrawal" checked> B. MDR / FOIA candidates &amp; withdrawal sheets</label>
 <label><input type="checkbox" id="f_unprocessed" checked> C. Unprocessed / no description</label>
 <label><input type="checkbox" id="f_other"> Other records (uncategorized)</label>
 </div>
 
 <div class="actions">
 <button class="primary" id="go">Search the Archives</button>
+<button class="ghost" id="stopBtn" disabled>Stop</button>
 <button class="ghost" id="clear">Clear</button>
+<button class="ghost" id="permalink" title="Copy a URL that reproduces this search">Copy link</button>
 <span id="status"></span>
 </div>
 </section>
 
+<section class="panel" id="historyPanel" style="display:none">
+<h3>Recent searches</h3>
+<div id="history" class="history"></div>
+</section>
+
+<section class="panel" id="savedPanel" style="display:none">
+<h3>Saved items <span class="count" id="savedCount"></span></h3>
+<div class="actions">
+<button class="ghost" id="exportCsv">Export CSV</button>
+<button class="ghost" id="exportCite">Export citation Markdown</button>
+<button class="ghost" id="openAll">Open all in NARA tabs</button>
+<button class="ghost" id="clearSaved">Clear saved</button>
+</div>
+<ol class="saved" id="savedList"></ol>
+</section>
+
 <section class="panel" id="resultsPanel" style="display:none">
 <h3>Findings</h3>
-<div id="summary" style="font-size:.88rem;color:var(--frus-red-dark);margin-bottom:.6rem;font-variant:small-caps;letter-spacing:.08em"></div>
+<div id="summary" class="summary"></div>
 <ol class="results" id="results"></ol>
 <div class="pager" id="pager"></div>
+</section>
+
+<section class="panel" id="adminPanel">
+<details>
+<summary>Maintenance: refresh collection lists</summary>
+<p class="hint">Re-runs the catalog query that discovers all Bush 41 and Clinton administration collections. Use occasionally as NARA processes new material.</p>
+<div class="actions">
+<button class="ghost" id="refreshLists">Refresh collection lists</button>
+<span id="refreshStatus"></span>
+</div>
+</details>
 </section>
 </main>
 <footer>
@@ -85,6 +155,7 @@
 NARA Scout &middot; Data courtesy of the National Archives and Records Administration<br>
 <a href="https://github.com/therealjameswilson/nara-scout" style="color:var(--frus-red)">Source on GitHub</a>
 </footer>
+<script src="topics.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
