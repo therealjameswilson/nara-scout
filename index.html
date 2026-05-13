@@ -146,6 +146,15 @@
 
 <section class="panel" id="adminPanel">
 <details>
+<summary>Settings: NARA API key <span class="count" id="apiKeyStatus"></span></summary>
+<p class="hint">NARA Scout ships with a shared API key so colleagues can use it out of the box. If you'd rather use your own key (e.g., to avoid sharing the shared key's rate limit), paste it below. Stored only in this browser. <a href="https://www.archives.gov/developer" target="_blank" rel="noopener" style="color:var(--frus-red)">Request a free key from archives.gov/developer</a>.</p>
+<div class="row three">
+<div style="grid-column: span 2"><label for="apiKeyInput">Your NARA API key</label><input type="text" id="apiKeyInput" placeholder="Paste your personal NARA API key here (leave blank to use the default)" autocomplete="off" spellcheck="false"></div>
+<div style="display:flex;align-items:flex-end;gap:.4rem"><button class="ghost" id="saveApiKey">Save</button><button class="ghost" id="clearApiKey">Use default</button></div>
+</div>
+<span id="apiKeyMsg" class="hint"></span>
+</details>
+<details>
 <summary>Maintenance: refresh collection lists</summary>
 <p class="hint">Re-runs the catalog query that discovers all Bush 41 and Clinton administration collections. Use occasionally as NARA processes new material.</p>
 <div class="actions">

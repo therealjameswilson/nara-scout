@@ -30,6 +30,27 @@ const MAX_COLLECTIONS_PER_SCOPE = 200;   // raised from 75 in v0.2
 const HISTORY_KEY = 'nara-scout.history';
 const SAVED_KEY   = 'nara-scout.saved';
 const LISTS_KEY   = 'nara-scout.lists';
+const USER_API_KEY_KEY = 'nara-scout.userApiKey';
+
+// User-supplied NARA API key (overrides the default if set). Returned as a
+// trimmed string or null. The default API_KEY is used as a fallback so the app
+// works out-of-the-box for colleagues who haven't gotten their own key yet.
+function getActiveApiKey() {
+  try {
+    const k = (localStorage.getItem(USER_API_KEY_KEY) || '').trim();
+    if (k) return k;
+  } catch (e) {}
+  return API_KEY;
+}
+function isUsingUserApiKey() {
+  try {
+    return !!(localStorage.getItem(USER_API_KEY_KEY) || '').trim();
+  } catch (e) { return false; }
+}
+
+// Per-search API-call counter. Incremented on every network fetch to NARA
+// (cache hits are NOT counted). Reset at the top of runSearch().
+let apiCallCount = 0;
 
 // Featured sub-collections used by quick-scopes (subset of NSC children).
 // NAIDs discovered empirically via /records/parent-search and catalog queries.
@@ -275,8 +296,9 @@ async function fetchOne(naid, q, from, to, level, perColl, signal) {
   params.append('limit', String(perColl));
 
   try {
+    apiCallCount++;
     const r = await fetch(PROXY_URL.replace(/\/+$/, '') + NARA_PATH + '?' + params.toString(), {
-      headers: { 'x-api-key': API_KEY, 'Accept': 'application/json' },
+      headers: { 'x-api-key': getActiveApiKey(), 'Accept': 'application/json' },
       signal,
     });
     if (!r.ok) return { naid, hits: [], total: 0, error: 'HTTP ' + r.status };
@@ -316,6 +338,8 @@ async function runSearch() {
     truncated = true;
   }
 
+  apiCallCount = 0;
+
   $('go').disabled = true;
   $('stopBtn').disabled = false;
   setStatus('Searching ' + naids.length + ' collection' + (naids.length === 1 ? '' : 's') + '...');
@@ -343,7 +367,7 @@ async function runSearch() {
         if (id && !merged.has(id)) merged.set(id, rec);
       }
       completed++;
-      setStatus('Searching ' + naids.length + ' collections... (' + completed + ' done, ' + merged.size + ' unique)');
+      setStatus('Searching ' + naids.length + ' collections... (' + completed + ' done, ' + merged.size + ' unique, ' + apiCallCount + ' API call' + (apiCallCount === 1 ? '' : 's') + ')');
     }
   });
 
@@ -363,6 +387,8 @@ async function runSearch() {
   state.page = 1;
   state.perPage = perPage;
   state.sortBy = sortBy;
+  state.apiCalls = apiCallCount;
+  state.collectionsScanned = naids.length;
 
   render();
 }
@@ -370,7 +396,7 @@ async function runSearch() {
 // =====================================================================
 // RENDER (paginated + sorted)
 // =====================================================================
-const state = { records: [], totalAcross: 0, truncated: false, page: 1, perPage: 50, sortBy: 'relevance' };
+const state = { records: [], totalAcross: 0, truncated: false, page: 1, perPage: 50, sortBy: 'relevance', apiCalls: 0, collectionsScanned: 0 };
 
 function sortRecords(records, sortBy) {
   const yr = r => (r.coverageStartDate && r.coverageStartDate.year) || (r.coverageEndDate && r.coverageEndDate.year) || 0;
@@ -407,12 +433,18 @@ function render() {
                 records.length + ' unique merged (' +
                 cD + ' declassified, ' + cW + ' withdrawal/MDR, ' + cU + ' unprocessed, ' + cO + ' other) \u00b7 ' +
                 'visible after filters: ' + visible.length;
+  if (state.collectionsScanned) {
+    summary += ' \u00b7 ' + state.apiCalls + ' API call' + (state.apiCalls === 1 ? '' : 's') +
+               ' across ' + state.collectionsScanned + ' collection' + (state.collectionsScanned === 1 ? '' : 's');
+    const cached = state.collectionsScanned - state.apiCalls;
+    if (cached > 0) summary += ' (' + cached + ' from cache)';
+  }
   if (state.truncated) summary += ' \u00b7 NOTE: first ' + MAX_COLLECTIONS_PER_SCOPE + ' collections only.';
   if (state.aborted)   summary += ' \u00b7 STOPPED before all collections finished.';
   $('summary').textContent = summary;
 
   setStatus(records.length
-    ? 'Found ' + state.totalAcross.toLocaleString() + ' total \u00b7 ' + visible.length + ' visible after filters.'
+    ? 'Found ' + state.totalAcross.toLocaleString() + ' total \u00b7 ' + visible.length + ' visible after filters \u00b7 ' + state.apiCalls + ' API call' + (state.apiCalls === 1 ? '' : 's') + '.'
     : 'No records found.');
 
   // Pagination
@@ -804,8 +836,9 @@ async function discoverCollections(adminQuery, titleMustContain) {
   params.append('q', sanitizeQuery(adminQuery));
   params.append('levelOfDescription', 'collection');
   params.append('limit', '300');
+  apiCallCount++;
   const r = await fetch(PROXY_URL.replace(/\/+$/, '') + NARA_PATH + '?' + params.toString(), {
-    headers: { 'x-api-key': API_KEY, 'Accept': 'application/json' }
+    headers: { 'x-api-key': getActiveApiKey(), 'Accept': 'application/json' }
   });
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const json = await readJsonOrFlagHtml(r);
@@ -858,6 +891,44 @@ function attachListeners() {
   });
 
   $('refreshLists').addEventListener('click', refreshCollectionLists);
+
+  // ---- API key settings ----
+  const apiInput = $('apiKeyInput');
+  if (apiInput) {
+    try { apiInput.value = (localStorage.getItem(USER_API_KEY_KEY) || ''); } catch (e) {}
+    renderApiKeyStatus();
+    $('saveApiKey').addEventListener('click', () => {
+      const v = (apiInput.value || '').trim();
+      try {
+        if (v) {
+          localStorage.setItem(USER_API_KEY_KEY, v);
+          $('apiKeyMsg').textContent = 'Saved. Your personal key will be used for future searches.';
+        } else {
+          localStorage.removeItem(USER_API_KEY_KEY);
+          $('apiKeyMsg').textContent = 'Cleared. Falling back to the shared default key.';
+        }
+      } catch (e) {
+        $('apiKeyMsg').textContent = 'Could not save (localStorage unavailable).';
+      }
+      // Bust the response cache so a stale shared-key cached result doesn't
+      // mask a real test of the new key.
+      try { sessionStorage.clear(); } catch (e) {}
+      renderApiKeyStatus();
+    });
+    $('clearApiKey').addEventListener('click', () => {
+      apiInput.value = '';
+      try { localStorage.removeItem(USER_API_KEY_KEY); } catch (e) {}
+      try { sessionStorage.clear(); } catch (e) {}
+      $('apiKeyMsg').textContent = 'Cleared. Falling back to the shared default key.';
+      renderApiKeyStatus();
+    });
+  }
+}
+
+function renderApiKeyStatus() {
+  const el = $('apiKeyStatus');
+  if (!el) return;
+  el.textContent = isUsingUserApiKey() ? '(using personal key)' : '(using shared default key)';
 }
 
 function init() {
