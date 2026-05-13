@@ -42,14 +42,13 @@ NAIDs marked above are starting values; if a search returns zero hits the NAID c
 
 ## Using the tool
 
-1. Get a free NARA Catalog API key (api.data.gov): https://www.archives.gov/developer
-2. Open the live site and paste your key into the **API key** field. The key lives only in your browser's `localStorage` and is never committed to this repo.
-3. Enter search terms, pick which collections to scope to, and choose one or more **record-type filters**: Declassified, Withdrawal sheets, or Unprocessed.
-4. Click **Search the Archives**. Each result is tagged with the workflow it belongs to (DECLASSIFIED ONLINE / WITHDRAWAL SHEET / UNPROCESSED).
+Just open the live site, type a query, and click **Search the Archives**. The shared NARA API key is baked into the page so colleagues can use it without any setup. Each result is tagged with the workflow it belongs to (DECLASSIFIED ONLINE / WITHDRAWAL SHEET / UNPROCESSED).
 
-## Why bring-your-own-key?
+## Architecture
 
-This is a public, static site. Hardcoding a NARA API key would expose it and let strangers exhaust the rate-limit quota tied to that key. Asking each user to paste their own keeps everyone within their own quota.
+The NARA Catalog API v2 does not return CORS headers, so a browser cannot call `catalog.archives.gov` directly from a static site. NARA Scout therefore routes every request through a tiny **Cloudflare Worker** proxy (see [`worker/`](./worker/)) that adds CORS headers and forwards the request unchanged. The Worker holds no secrets — the shared `x-api-key` is sent from the browser through the Worker to NARA.
+
+One-time setup is documented in [`worker/README.md`](./worker/README.md) (~3 minutes, free Cloudflare account). After deploying the Worker, paste its `*.workers.dev` URL into the `PROXY_URL` constant at the top of `app.js`.
 
 ## API used
 
@@ -64,6 +63,8 @@ Searches use `ancestor.naId` to scope within each selected parent collection, co
 - `index.html` - search UI (FRUS red-buckram aesthetic)
 - `app.js` - Catalog API client, workflow classifier, results renderer
 - `style.css` - typography and layout
+- `worker/nara-proxy.js` - Cloudflare Worker CORS proxy
+- `worker/README.md` - 3-minute deploy instructions for the proxy
 - `README.md` - this file
 
 ## License
