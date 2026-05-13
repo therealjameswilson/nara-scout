@@ -23,38 +23,6 @@
 
 window.TOPIC_PACKS = [
   // ===================================================================
-  // Multiple Administrations (1917–1972)
-  // ===================================================================
-  {
-    id: 'pubdip-interwar',
-    name: '1917–1972 Vol II · Public Diplomacy, The Interwar Period',
-    note: 'FRUS Being Researched. Public-diplomacy precursors; Bush/Clinton NARA holdings will be thin — use for continuity references.',
-    q: '"public diplomacy" OR USIA OR propaganda OR "cultural relations"',
-    from: 1989, to: 2001,
-    scope: ['bush41', 'clinton'],
-  },
-  {
-    id: 'pubdip-ww2',
-    name: '1917–1972 Vol III · Public Diplomacy, World War II',
-    note: 'FRUS Being Researched. WWII public diplomacy; included for completeness — Bush/Clinton NARA holdings will be thin.',
-    q: '"public diplomacy" OR "Office of War Information" OR OWI OR "Voice of America"',
-    from: 1989, to: 2001,
-    scope: ['bush41', 'clinton'],
-  },
-
-  // ===================================================================
-  // Eisenhower Administration (1953–1961)
-  // ===================================================================
-  {
-    id: 'ike-intel',
-    name: 'Eisenhower · The Intelligence Community, 1956–1960',
-    note: 'FRUS Being Researched. Eisenhower-era intelligence; Bush/Clinton NARA holdings will be tangential.',
-    q: '"intelligence community" OR CIA OR "National Security Council" OR covert',
-    from: 1989, to: 2001,
-    scope: ['bush41', 'clinton', '2163580', '7386739'],
-  },
-
-  // ===================================================================
   // Reagan Administration (1981–1989)
   // ===================================================================
   {
