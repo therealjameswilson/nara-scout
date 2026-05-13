@@ -10,7 +10,7 @@
 
 // === REPLACE THIS with the *.workers.dev URL Cloudflare gives you ===========
 // See worker/README.md for the 3-minute setup.
-const PROXY_URL = 'https://nara-proxy.REPLACE-ME.workers.dev';
+const PROXY_URL = 'https://nara-proxy.mzqmpgyvdv.workers.dev';
 
 // Shared NARA Catalog API key (api.data.gov). Exposed in public JS by design,
 // per the project owner. Rate limit is per-key, so a busy day across many
@@ -50,10 +50,10 @@ let currentPage = 0;
 $('go').addEventListener('click', () => { currentPage = 0; runSearch(); });
 $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { currentPage = 0; runSearch(); } });
 
-function classify(src) {
-  const title = (src.title || '').toString().toLowerCase();
-  const desc = (src.scopeAndContentNote || src.description || '').toString();
-  const online = !!src.availableOnline;
+function classify(rec) {
+  const title = (rec.title || '').toString().toLowerCase();
+  const desc = (rec.scopeAndContentNote || '').toString();
+  const online = Array.isArray(rec.digitalObjects) && rec.digitalObjects.length > 0;
 
   if (WITHDRAWAL_RE.test(title) || WITHDRAWAL_RE.test(desc)) return 'withdrawal';
   if (online) return 'declassified';
@@ -62,11 +62,6 @@ function classify(src) {
 }
 
 async function runSearch() {
-  if (PROXY_URL.includes('REPLACE-ME')) {
-    setStatus('Proxy not configured. Edit PROXY_URL in app.js; see worker/README.md.');
-    return;
-  }
-
   const q = $('q').value.trim();
   const from = $('from').value.trim();
   const to = $('to').value.trim();
@@ -108,11 +103,13 @@ function setStatus(msg) { $('status').textContent = msg; }
 function render(data, limit) {
   const body = data.body || data;
   const hits = (body.hits && body.hits.hits) || body.results || [];
-  const total = (body.hits && body.hits.total && (body.hits.total.value ?? body.hits.total)) || body.totalResults || hits.length;
+  const totalRaw = body.hits && body.hits.total;
+  const total = (totalRaw && (totalRaw.value ?? totalRaw)) || body.totalResults || hits.length;
 
   const classified = hits.map(h => {
-    const src = h._source || h.record || h;
-    return { src, hit: h, cat: classify(src) };
+    const src = h._source || {};
+    const rec = src.record || src;
+    return { rec, hit: h, cat: classify(rec) };
   });
 
   const showD = $('f_declassified').checked;
@@ -136,12 +133,14 @@ function render(data, limit) {
 
   const ol = $('results');
   ol.innerHTML = '';
-  for (const { src, cat } of visible) {
-    const naid = src.naId || src.naid || '';
-    const title = (src.title || src.recordTitle || 'Untitled').toString();
-    const desc = (src.scopeAndContentNote || src.description || '').toString();
-    const dates = (src.productionDate && (src.productionDate.logicalDate || src.productionDate)) || src.coverageDates || '';
-    const ancestors = (src.ancestors || []).map(a => a.title || a.collectionTitle).filter(Boolean).slice(0, 2);
+  for (const { rec, cat } of visible) {
+    const naid = rec.naId || '';
+    const title = (rec.title || 'Untitled').toString();
+    const desc = (rec.scopeAndContentNote || '').toString();
+    const startY = rec.coverageStartDate && rec.coverageStartDate.year;
+    const endY = rec.coverageEndDate && rec.coverageEndDate.year;
+    const dates = startY && endY ? (startY === endY ? String(startY) : startY + '–' + endY) : (startY || endY || '');
+    const ancestors = (rec.ancestors || []).map(a => a.title || a.collectionTitle).filter(Boolean).slice(0, 2);
 
     const badge = cat === 'declassified' ? '<span class="badge badge-declass">DECLASSIFIED ONLINE</span>'
                 : cat === 'withdrawal'   ? '<span class="badge badge-withdraw">WITHDRAWAL SHEET</span>'
