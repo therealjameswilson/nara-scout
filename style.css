@@ -39,7 +39,10 @@ ol.results li h4 a:hover{color:var(--frus-red-light);border-bottom-style:solid;}
 ol.results li .meta{font-size:.82rem;color:#5a4a2a;font-variant:small-caps;letter-spacing:.08em;margin-bottom:.3rem;}
 ol.results li .snippet{font-size:.95rem;color:#2a221c;}
 ol.results li .tags{margin-top:.3rem;font-size:.8rem;}
-ol.results li .tags span{display:inline-block;background:#efe3c0;color:var(--frus-red-dark);padding:.1rem .5rem;margin-right:.3rem;border:1px solid #d4c084;}
+ol.results li .tags span,
+ol.results li .tags a.tag-link{display:inline-block;background:#efe3c0;color:var(--frus-red-dark);padding:.1rem .5rem;margin-right:.3rem;margin-bottom:.2rem;border:1px solid #d4c084;text-decoration:none;transition:background-color .12s,border-color .12s;}
+ol.results li .tags a.tag-link:hover,
+ol.results li .tags a.tag-link:focus{background:#e6d59a;border-color:#b89a4a;text-decoration:underline;}
 /* Footer */
 footer{text-align:center;color:#5a4a2a;font-size:.8rem;font-style:italic;padding:1.4rem 1rem 2.4rem;border-top:1px solid #d9c89a;margin-top:2rem;}
 footer .gold-rule{height:2px;background:var(--gold);width:120px;margin:.6rem auto;opacity:.7;}

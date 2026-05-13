@@ -194,7 +194,10 @@ function render(records, totalAcrossCollections, truncated) {
     const startY = rec.coverageStartDate && rec.coverageStartDate.year;
     const endY = rec.coverageEndDate && rec.coverageEndDate.year;
     const dates = startY && endY ? (startY === endY ? String(startY) : startY + '\u2013' + endY) : (startY || endY || '');
-    const ancestors = (rec.ancestors || []).map(a => a.title || a.collectionTitle).filter(Boolean).slice(0, 2);
+    // Keep the full ancestor objects so each tag can link to its NARA page.
+    const ancestors = (rec.ancestors || [])
+      .filter(a => a && (a.title || a.collectionTitle))
+      .slice(0, 2);
 
     const badge = cat === 'declassified' ? '<span class="badge badge-declass">DECLASSIFIED ONLINE</span>'
                 : cat === 'withdrawal'   ? '<span class="badge badge-withdraw">WITHDRAWAL SHEET</span>'
@@ -207,7 +210,17 @@ function render(records, totalAcrossCollections, truncated) {
       '<h4><a href="https://catalog.archives.gov/id/' + naid + '" target="_blank" rel="noopener">' + esc(title) + '</a></h4>' +
       '<div class="meta">NAID ' + naid + (dates ? ' &middot; ' + esc(String(dates)) : '') + '</div>' +
       (desc ? '<div class="snippet">' + esc(desc.slice(0, 400)) + (desc.length > 400 ? '...' : '') + '</div>' : '<div class="snippet" style="color:var(--gold-dark);font-style:italic">No scope/content note. Plan on-site research.</div>') +
-      (ancestors.length ? '<div class="tags">' + ancestors.map(a => '<span>' + esc(a) + '</span>').join('') + '</div>' : '');
+      (ancestors.length
+        ? '<div class="tags">' + ancestors.map(a => {
+            const aTitle = a.title || a.collectionTitle || '';
+            const aId = a.naId;
+            const aLvl = a.levelOfDescription ? a.levelOfDescription.charAt(0).toUpperCase() + a.levelOfDescription.slice(1) : '';
+            const aTip = aLvl ? aLvl + ' \u00b7 NAID ' + (aId || '') : (aId ? 'NAID ' + aId : '');
+            return aId
+              ? '<a class="tag-link" href="https://catalog.archives.gov/id/' + aId + '" target="_blank" rel="noopener" title="' + esc(aTip) + '">' + esc(aTitle) + '</a>'
+              : '<span title="' + esc(aTip) + '">' + esc(aTitle) + '</span>';
+          }).join('') + '</div>'
+        : '');
     ol.appendChild(li);
   }
 }
