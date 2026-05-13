@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NARA Scout - FRUS Research Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="cover">
+<div class="inner">
+<div class="seal">Office of the Historian &middot; U.S. Department of State</div>
+<h1>NARA SCOUT</h1>
+<h2>A Reconnaissance Tool for the Foreign Relations of the United States</h2>
+<div class="rule"></div>
+<div class="volume">Bush 41 &middot; Clinton &middot; National Security Council &amp; Presidential Files</div>
+</div>
+</header>
+<main>
+<section class="panel">
+<h3>Credentials</h3>
+<label for="apikey">NARA Catalog API Key</label>
+<input type="password" id="apikey" placeholder="paste your api.data.gov key" autocomplete="off">
+<div class="note">Your key is stored only in this browser (localStorage). Request a free key at <a href="https://www.archives.gov/developer" target="_blank" rel="noopener">archives.gov/developer</a>.</div>
+</section>
+
+<section class="panel">
+<h3>Query</h3>
+<label for="q">Search terms</label>
+<input type="text" id="q" placeholder="e.g. START II, Bosnia, NATO enlargement, Yeltsin" autofocus>
+<div class="row three">
+<div><label for="from">From (year)</label><input type="number" id="from" min="1989" max="2001" placeholder="1989"></div>
+<div><label for="to">To (year)</label><input type="number" id="to" min="1989" max="2001" placeholder="2001"></div>
+<div><label for="limit">Per page</label><select id="limit"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></div>
+</div>
+<label style="margin-top:1rem">Collections</label>
+<div class="checks">
+<label><input type="checkbox" data-naid="BUSH_NSC" checked> Bush NSC Files</label>
+<label><input type="checkbox" data-naid="CLINTON_NSC" checked> Clinton NSC Files</label>
+<label><input type="checkbox" data-naid="4522156" checked> Scowcroft Files</label>
+<label><input type="checkbox" data-naid="595141" checked> Bush Presidential Daily Files</label>
+<label><input type="checkbox" data-naid="BUSH_ALL"> All Bush Presidential Records</label>
+<label><input type="checkbox" data-naid="CLINTON_ALL"> All Clinton Presidential Records</label>
+</div>
+<label style="margin-top:.8rem"><input type="checkbox" id="online" checked style="transform:scale(1.1);margin-right:.4rem;accent-color:var(--frus-red)"> Available online only</label>
+<div class="actions">
+<button class="primary" id="go">Search the Archives</button>
+<button class="ghost" id="clear">Clear</button>
+<span id="status"></span>
+</div>
+</section>
+
+<section class="panel" id="resultsPanel" style="display:none">
+<h3>Findings</h3>
+<ol class="results" id="results"></ol>
+<div class="pager" id="pager"></div>
+</section>
+</main>
+<footer>
+<div class="gold-rule"></div>
+NARA Scout &middot; Data courtesy of the National Archives and Records Administration<br>
+Built for FRUS compilers &middot; <a href="https://github.com/therealjameswilson/nara-scout" style="color:var(--frus-red)">source on GitHub</a>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
