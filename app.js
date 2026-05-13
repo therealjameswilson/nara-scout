@@ -6,7 +6,7 @@ const API = 'https://catalog.archives.gov/api/v2/records/search';
 
 const NAIDS = {
   // Bush 41 collections
-  'BUSH_NSC':    { naid: '6879843',   label: 'Bush NSC Files' },
+  'BUSH_NSC':    { naid: '2163580',   label: 'Bush NSC Files' },
   '4522156':     { naid: '4522156',   label: 'Scowcroft Files' },
   '595141':      { naid: '595141',    label: 'Bush Presidential Daily Files' },
   '284825748':   { naid: '284825748', label: 'Cheney Collection' },
