@@ -5,12 +5,18 @@
 const API = 'https://catalog.archives.gov/api/v2/records/search';
 
 const NAIDS = {
-  'BUSH_NSC':    { naid: '6879843', label: 'Bush NSC Files' },
-  'CLINTON_NSC': { naid: '6166381', label: 'Clinton NSC Files' },
-  '4522156':     { naid: '4522156', label: 'Scowcroft Files' },
-  '595141':      { naid: '595141',  label: 'Bush Presidential Daily Files' },
-  'BUSH_ALL':    { naid: '2756545', label: 'Bush Presidential Records' },
-  'CLINTON_ALL': { naid: '2787346', label: 'Clinton Presidential Records' }
+  // Bush 41 collections
+  'BUSH_NSC':    { naid: '6879843',   label: 'Bush NSC Files' },
+  '4522156':     { naid: '4522156',   label: 'Scowcroft Files' },
+  '595141':      { naid: '595141',    label: 'Bush Presidential Daily Files' },
+  '284825748':   { naid: '284825748', label: 'Cheney Collection' },
+  '564645':      { naid: '564645',    label: 'Bush WHORM Subject File' },
+  'BUSH_ALL':    { naid: '2756545',   label: 'All Bush Presidential Records' },
+  // Clinton collections
+  'CLINTON_NSC': { naid: '6166381',   label: 'Clinton NSC Files' },
+  '2525022':     { naid: '2525022',   label: 'Clinton NEC Files' },
+  '594462':      { naid: '594462',    label: 'Clinton WHORM' },
+  'CLINTON_ALL': { naid: '2787346',   label: 'All Clinton Presidential Records' }
 };
 
 const WITHDRAWAL_RE = /withdraw(al)?\s*(sheet|notice|card)|NA\s*Form\s*1402[13]/i;
@@ -89,13 +95,11 @@ function render(data, limit) {
   const hits = (body.hits && body.hits.hits) || body.results || [];
   const total = (body.hits && body.hits.total && (body.hits.total.value ?? body.hits.total)) || body.totalResults || hits.length;
 
-  // Classify each hit
   const classified = hits.map(h => {
     const src = h._source || h.record || h;
     return { src, hit: h, cat: classify(src) };
   });
 
-  // Apply workflow filters
   const showD = $('f_declassified').checked;
   const showW = $('f_withdrawal').checked;
   const showU = $('f_unprocessed').checked;
@@ -107,7 +111,6 @@ function render(data, limit) {
     (c.cat === 'other' && showO)
   );
 
-  // Summary counts
   const cD = classified.filter(c => c.cat === 'declassified').length;
   const cW = classified.filter(c => c.cat === 'withdrawal').length;
   const cU = classified.filter(c => c.cat === 'unprocessed').length;
@@ -140,7 +143,6 @@ function render(data, limit) {
     ol.appendChild(li);
   }
 
-  // Pager
   const pg = $('pager'); pg.innerHTML = '';
   if (total > limit) {
     const pages = Math.min(Math.ceil(total / limit), 200);
