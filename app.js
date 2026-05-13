@@ -96,27 +96,48 @@ function renderTopicPacks() {
   }
 }
 
+// Topic Packs 2.0: NAIDs from a pack that aren't admin tokens AND aren't
+// represented by a featured checkbox are stashed here so selectedNaids() can
+// merge them in for one search. Cleared the moment the user touches a scope
+// checkbox or quick scope or admin scope manually.
+let PACK_AD_HOC_NAIDS = [];
+let ACTIVE_PACK_ID = null;
+
+function clearPackAdHoc() {
+  PACK_AD_HOC_NAIDS = [];
+  ACTIVE_PACK_ID = null;
+  document.querySelectorAll('.topic-pack').forEach(el => el.classList.remove('active'));
+}
+
 function applyTopicPack(pack) {
   $('q').value = pack.q || '';
   $('from').value = pack.from || '';
   $('to').value = pack.to || '';
-  // Reset all scope checkboxes
+  // Reset all scope checkboxes (featured + admin + quick)
   document.querySelectorAll('.featured input[type=checkbox]').forEach(cb => cb.checked = false);
-  $('scope_reagan').checked = pack.scope.includes('reagan');
-  $('scope_bush41').checked = pack.scope.includes('bush41');
+  document.querySelectorAll('.quick-scopes input[type=checkbox]').forEach(cb => cb.checked = false);
+  $('scope_reagan').checked  = pack.scope.includes('reagan');
+  $('scope_bush41').checked  = pack.scope.includes('bush41');
   $('scope_clinton').checked = pack.scope.includes('clinton');
+  // For numeric NAIDs: tick the featured checkbox if one exists; otherwise
+  // remember it as an ad-hoc NAID so the search still hits that collection.
+  const adHoc = [];
   for (const naid of pack.scope) {
     if (naid === 'reagan' || naid === 'bush41' || naid === 'clinton') continue;
     const cb = document.querySelector('.featured input[data-naid="' + naid + '"]');
     if (cb) cb.checked = true;
+    else adHoc.push(String(naid));
   }
-  // Reset quick scopes
-  document.querySelectorAll('.quick-scopes input[type=checkbox]').forEach(cb => cb.checked = false);
+  PACK_AD_HOC_NAIDS = adHoc;
+  ACTIVE_PACK_ID = pack.id;
   // Highlight selected
   document.querySelectorAll('.topic-pack').forEach(el => el.classList.remove('active'));
   const sel = document.querySelector('.topic-pack[data-id="' + pack.id + '"]');
   if (sel) sel.classList.add('active');
-  setStatus('Topic pack loaded: ' + pack.name + ' \u2014 click Search to run.');
+  const adHocNote = adHoc.length
+    ? ' (+' + adHoc.length + ' NSC sub-collection' + (adHoc.length === 1 ? '' : 's') + ' from Sources)'
+    : '';
+  setStatus('Topic pack loaded: ' + pack.name + adHocNote + ' \u2014 click Search to run.');
 }
 
 // =====================================================================
@@ -147,6 +168,10 @@ function selectedNaids() {
   document.querySelectorAll('.featured input[type=checkbox]:checked').forEach(cb => {
     if (cb.dataset.naid) set.add(cb.dataset.naid);
   });
+
+  // Topic Packs 2.0: ad-hoc NAIDs cited in a pack's Sources (e.g. specific
+  // NSC directorate NAIDs that don't have a featured checkbox of their own).
+  for (const naid of PACK_AD_HOC_NAIDS) set.add(naid);
 
   return [...set];
 }
@@ -799,6 +824,13 @@ function init() {
   $('count_reagan').textContent  = '(' + REAGAN_COLLECTIONS.length + ')';
   $('count_bush41').textContent  = '(' + BUSH41_COLLECTIONS.length + ')';
   $('count_clinton').textContent = '(' + CLINTON_COLLECTIONS.length + ')';
+  // When the user manually toggles any scope, clear the pack ad-hoc list and
+  // de-highlight the active pack so what's selected matches what searches.
+  document.querySelectorAll('.featured input[type=checkbox], .quick-scopes input[type=checkbox], #scope_reagan, #scope_bush41, #scope_clinton').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (PACK_AD_HOC_NAIDS.length || ACTIVE_PACK_ID) clearPackAdHoc();
+    });
+  });
   loadFromPermalink();
   renderSavedPanel();
   renderHistoryPanel();
