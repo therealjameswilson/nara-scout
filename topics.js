@@ -1,175 +1,307 @@
-// NARA Scout — Topic Packs 2.0
+// NARA Scout — Topic Packs.
 //
-// Source of truth: the SOURCES section of each PUBLISHED FRUS volume for the
-// Reagan and George H.W. Bush administrations, as listed on
-// history.state.gov/historicaldocuments/{reagan,bush-ghw}
-// (snapshot: May 2026 — 12 Reagan volumes + 1 Bush 41 volume published).
+// Source of truth: FRUS volumes currently marked "Being Researched" on the
+// Status of the Series page at history.state.gov/historicaldocuments/status-of-the-series
+// (snapshot: May 2026).
 //
-// Each pack is keyed to a single published volume. Its scope is NAID-precise:
-// only the NARA Presidential Library collections the volume's Sources page
-// actually cites. Queries are derived from the volume's topical scope and the
-// named programs / staffers / lot files that the Sources section highlights.
+// One pack per volume. Each pack defines a curated FRUS-volume search:
+//   q     - keyword query (no quotes around the whole string; embedded "phrases" allowed)
+//   from  - start year (inclusive)
+//   to    - end year (inclusive)
+//   scope - array of strings the engine knows about:
+//             "bush41"     - all 70 Bush 41 collections
+//             "clinton"    - all 132 Clinton administration collections
+//             numeric NAID - that specific collection
 //
-// Pack fields:
-//   id    - unique slug
-//   name  - "Vol N · Title"
-//   note  - 1-line scope + key cited collections (shown under date range)
-//   q     - keyword query tuned to the volume's topic
-//   from  - volume's actual start year
-//   to    - volume's actual end year
-//   scope - array of NAIDs (strings) AND/OR admin tokens ("reagan","bush41","clinton")
-//           The engine treats numeric strings as NARA ancestor-collection NAIDs.
+// Scope now includes 83 Reagan-administration collections (incl. 17 Reagan
+// NSC directorate collections) plus all Bush 41 and Clinton collections.
+// Reagan packs are tuned to Reagan-era records; Bush 41 packs include some
+// Reagan continuity material where relevant.
 //
-// Reagan NSC Executive Secretariat NAIDs you'll see below:
-//   1188      Executive Secretariat (umbrella)
-//   7451593   European & Soviet Affairs Directorate
-//   12024979  Near East & South Asia Affairs Directorate
-//   40359468  African Affairs Directorate
-//   12024796  Latin American Affairs Directorate
-//   12024916  Asian Affairs Directorate
-//   12011340  Political-Military Affairs Directorate
-//   12011341  Defense Policy Directorate
-//   12011342  Defense Programs & Arms Control Directorate
-//   12024797  Intelligence Directorate
-//   12024920  Political Affairs Directorate
-//   12024929  Coordination Office
-//   67603959  International Economic Affairs Directorate
-//   60693877  Legal Advisor Office
-//   364672879 Crisis Management Center
-//   364776614 Counterterrorism & Narcotics Directorate
-//
-// Reagan adjacent collections cited by Sources:
-//   6120375   Domestic Policy Council (Bledsoe / DPC records)
-//   7821173   Economic Policy Council
-//   2618827   Ralph Bledsoe Files (cabinet councils — within Reagan Library)
-//
-// Bush 41 collections cited by Sources for v31 (START I):
-//   2163580   Records of the National Security Council (Bush 41 umbrella)
-//   2579957   Records of the Office of the Vice President (Bush 41) — VP Bush era continuity
+// Edit freely; the UI rebuilds itself from this list.
 
 window.TOPIC_PACKS = [
   // ===================================================================
-  // Reagan Administration — Published Volumes
+  // Reagan Administration (1981–1989)
   // ===================================================================
   {
-    id: 'frus1981-88v01',
-    name: 'Vol I · Foundations of Foreign Policy',
-    note: 'Reagan public statements + transition. Speechwriting Research Office, WHORM Subject File, 1980 Transition Papers, Exec Sec Subject File, McFarlane/Gergen/Bailey/Dobriansky/Fortier staff files.',
-    q: 'Reagan speech OR speechwriting OR "Public Papers" OR statement OR "Transition Papers" OR doctrine OR "national strategy" OR address',
-    from: '1980',
-    to: '1989',
-    scope: ['1188', 'reagan'],
+    id: 'reagan-weur',
+    name: 'Reagan Vol VIII · Western Europe, 1985–1988',
+    note: 'FRUS Being Researched. Reagan-era Western Europe; NSC European & Soviet Affairs directorate central.',
+    q: '(Britain OR France OR Germany OR Italy OR Spain OR "Western Europe" OR Thatcher OR Mitterrand OR Kohl OR Andreotti)',
+    from: 1985, to: 1988,
+    scope: ['reagan', '1188', '7451593'],
   },
   {
-    id: 'frus1981-88v03',
-    name: 'Vol III · Soviet Union, Jan 1981–Jan 1983',
-    note: 'NSDDs, NSC/NSPG meetings, USSR Country File, Head of State File. Clark/McFarlane files; Pipes & Matlock (European & Soviet Affairs Directorate). Shultz Papers; Haig Papers (LoC). State Lot 93D188 memcons.',
-    q: 'Soviet OR USSR OR Moscow OR Brezhnev OR Andropov OR Gromyko OR INF OR "arms control" OR "NSDD" OR Pipes OR Matlock',
-    from: '1981',
-    to: '1983',
-    scope: ['1188', '7451593'],
+    id: 'reagan-iran-contra',
+    name: 'Reagan Vol XXIII · Iran-Contra Affair, 1985–1988',
+    note: 'FRUS Being Researched. Iran-Contra primary records (Reagan NSC) plus Bush 41 aftermath, Walsh investigation, Weinberger pardon.',
+    q: '("Iran-Contra" OR "Iran Contra" OR Weinberger OR Walsh OR Poindexter OR North OR Hakim OR Secord OR Casey OR pardon)',
+    from: 1985, to: 1993,
+    scope: ['reagan', 'bush41', '1188', '12024797', '60693877'],
   },
   {
-    id: 'frus1981-88v04',
-    name: 'Vol IV · Soviet Union, Jan 1983–Mar 1985',
-    note: 'Clark/McFarlane files; Matlock (European & Soviet Affairs Directorate USSR Files). NSC staff Lenczowski, Linhard, Lehman, Kraemer. State Exec Sec Lot files 91D257, 92D52, 92D630, 93D188, 94D92, 96D262.',
-    q: 'Soviet OR USSR OR Andropov OR Chernenko OR Gromyko OR INF OR START OR "arms control" OR Matlock OR KAL-007 OR "Able Archer"',
-    from: '1983',
-    to: '1985',
-    scope: ['1188', '7451593'],
+    id: 'reagan-trade-monpol',
+    name: 'Reagan Vol XXXVII · Trade; Monetary Policy; Industrialized Country Cooperation, 1985–1988',
+    note: 'FRUS Being Researched. Plaza Accord, Louvre Accord, G7; Reagan EPC and NSC International Economic Affairs.',
+    q: '("Plaza Accord" OR Louvre OR G7 OR G-7 OR "trade policy" OR "monetary policy" OR "exchange rate" OR yen OR deutschmark OR "Uruguay Round")',
+    from: 1985, to: 1988,
+    scope: ['reagan', '7821173', '67603959'],
   },
   {
-    id: 'frus1981-88v05',
-    name: 'Vol V · Soviet Union, Mar 1985–Oct 1986',
-    note: 'McFarlane/Poindexter files; Matlock (European & Soviet Affairs USSR Files). NSC staff Lenczowski, Linhard, Lehman, Kraemer. Geneva and Reykjavik summit prep.',
-    q: 'Gorbachev OR Soviet OR USSR OR Geneva OR Reykjavik OR INF OR SDI OR "arms control" OR Shevardnadze OR Matlock',
-    from: '1985',
-    to: '1986',
-    scope: ['1188', '7451593'],
+    id: 'reagan-refugees',
+    name: 'Reagan Vol XLII · Refugees and Immigration, 1975–1984',
+    note: 'FRUS Being Researched. Refugee/immigration policy through Reagan first term; Cuban, Haitian, Vietnamese, Salvadoran flows.',
+    q: '(refugee OR refugees OR immigration OR asylum OR Mariel OR "boat people" OR resettlement OR Indochinese)',
+    from: 1981, to: 1984,
+    scope: ['reagan', '1188', '6120375'],
   },
   {
-    id: 'frus1981-88v06',
-    name: 'Vol VI · Soviet Union, Oct 1986–Jan 1989',
-    note: 'Poindexter/Carlucci/Powell files; Matlock & Ermarth (European & Soviet Affairs Senior Director). Linhard (Defense Programs & Arms Control). Shultz Papers. INF Treaty, Moscow Summit.',
-    q: 'Gorbachev OR Soviet OR USSR OR Reykjavik OR Moscow OR INF OR "INF Treaty" OR Shevardnadze OR Matlock OR Ermarth',
-    from: '1986',
-    to: '1989',
-    scope: ['1188', '7451593', '12011342'],
-  },
-  {
-    id: 'frus1981-88v10',
-    name: 'Vol X · Eastern Europe',
-    note: 'European & Soviet Directorate staffers Paula Dobriansky and Rudolf Perina Files. John Whitehead Lot File 89D139. CIA NIC Registry of NIE/SNIE. Poland-adjacent.',
-    q: 'Poland OR Hungary OR Czechoslovakia OR Romania OR Bulgaria OR Yugoslavia OR "Eastern Europe" OR Solidarity OR Whitehead OR Dobriansky OR Perina',
-    from: '1981',
-    to: '1989',
-    scope: ['1188', '7451593'],
-  },
-  {
-    id: 'frus1981-88v11',
-    name: 'Vol XI · START I',
-    note: 'Exec Sec USSR Country / Head of State / NSDDs / NSC / NSPG. National Security Advisors Allen/Clark/McFarlane/Poindexter/Carlucci/Powell + Linhard. State Lots 90D397 (Nitze), 01D127 (Timbie).',
-    q: 'START OR "Strategic Arms Reduction" OR Geneva OR Nitze OR Timbie OR Kampelman OR "arms control" OR Soviet OR USSR',
-    from: '1981',
-    to: '1989',
-    scope: ['1188', '12011342', '7451593'],
-  },
-  {
-    id: 'frus1981-88v13',
-    name: 'Vol XIII · Conflict in the South Atlantic, 1981–1984',
-    note: 'Falklands / Malvinas crisis. Exec Sec Country File (Argentina, UK), Latin American Affairs Directorate, European & Soviet Affairs (UK), Haig/Shultz papers, OSD/JCS records.',
-    q: 'Falkland OR Malvinas OR Argentina OR "United Kingdom" OR "South Atlantic" OR Haig OR Galtieri OR Thatcher OR "Latin America"',
-    from: '1981',
-    to: '1984',
-    scope: ['1188', '12024796', '7451593'],
-  },
-  {
-    id: 'frus1981-88v24',
-    name: 'Vol XXIV · North Africa',
-    note: 'Reagan Library Exec Sec Africa Country File, Agency File, Head of State File; Near East & South Asia Affairs NSC Directorate. Bush VP records (Donald Gregg Files) at Bush Library.',
-    q: 'Libya OR Qadhafi OR Gaddafi OR Morocco OR Algeria OR Tunisia OR Mauritania OR "North Africa" OR Hassan OR Gregg',
-    from: '1981',
-    to: '1989',
-    scope: ['1188', '12024979', '40359468', '2579957'],
-  },
-  {
-    id: 'frus1981-88v38',
-    name: 'Vol XXXVIII · Int\u2019l Economic Development; Debt; Foreign Assistance',
-    note: 'Exec Sec NSC Trip File (G-7 / Cancun summits), Subject File. International Economic Affairs Directorate staff (Robinson, Bailey, Danzansky, Wigg, Farrar, McMinn). DPC Bledsoe Files (CCEA). Treasury RG 56.',
-    q: '"economic summit" OR G-7 OR Cancun OR debt OR "foreign assistance" OR "development assistance" OR "World Bank" OR IMF OR Bretton',
-    from: '1981',
-    to: '1989',
-    scope: ['1188', '67603959', '6120375', '7821173', '2618827'],
-  },
-  {
-    id: 'frus1981-88v41',
-    name: 'Vol XLI · Global Issues II',
-    note: 'Michael Guhin Files; NSC Subject File; DPC (Bledsoe). Human rights (Abrams, Schifter lot files); UN Women conference (Nairobi); refugees, AIDS, environment. Bush VP materials.',
-    q: '"human rights" OR refugee OR AIDS OR environment OR "ozone" OR whaling OR "population control" OR Abrams OR Schifter OR Guhin OR Nairobi',
-    from: '1981',
-    to: '1989',
-    scope: ['1188', '6120375', '2618827'],
-  },
-  {
-    id: 'frus1981-88v44p1',
-    name: 'Vol XLIV·1 · National Security Policy, 1985–1988',
-    note: 'NSC Exec Sec USSR / Head of State / NSDDs / NSC / NSPG. NSAs McFarlane/Poindexter/Carlucci/Powell. NSC staffers Cockell, Donley, Kraemer, Linhard. Shultz, Carlucci, Ikle papers; PROFS messages; NSC "W files".',
-    q: '"national security" OR NSDD OR NSPG OR strategy OR "arms control" OR Carlucci OR Poindexter OR Powell OR McFarlane OR Ikle',
-    from: '1985',
-    to: '1988',
-    scope: ['1188', '12011342', '12011341', '12011340'],
+    id: 'reagan-eastmed',
+    name: 'Reagan Vol XLV · Eastern Mediterranean, 1981–1988',
+    note: 'FRUS Being Researched. Cyprus, Greece, Turkey, Lebanon; Reagan NSC Near East & South Asia central.',
+    q: '(Cyprus OR Greece OR Turkey OR Lebanon OR Aegean OR PKK OR Beirut OR Papandreou OR Demirel OR Ozal)',
+    from: 1981, to: 1988,
+    scope: ['reagan', '1188', '12024979'],
   },
 
   // ===================================================================
-  // George H.W. Bush Administration — Published Volumes
+  // Bush 41 Administration (1989–1993)
   // ===================================================================
   {
-    id: 'frus1989-92v31',
-    name: 'Vol XXXI · START I, 1989–1991',
-    note: 'Bush NSC Institutional H-Files (NSC / Deputies Committee / NSDs). Scowcroft, Gates; NSC staff Gordon, Kanter. Bush VP records (Reagan era continuity, Gregg/Watson). State Lots 01D127 / 05D259 (Timbie). Baker Papers (Princeton).',
-    q: 'START OR "Strategic Arms Reduction" OR Scowcroft OR Gates OR Kanter OR Timbie OR Baker OR Geneva OR "arms control" OR Soviet OR Gorbachev',
-    from: '1989',
-    to: '1991',
-    scope: ['2163580', '2579957'],
+    id: 'bush41-v1-foundations',
+    name: 'Bush 41 Vol I · Foundations of Foreign Policy; Public Diplomacy',
+    note: 'FRUS Being Researched. Bush 41 foundational doctrine, NSDs, public diplomacy.',
+    q: '("National Security Directive" OR NSD OR "foreign policy" OR doctrine OR "public diplomacy" OR speechwriting)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580', '2579957'],
+  },
+  {
+    id: 'bush41-v2-orgmgmt',
+    name: 'Bush 41 Vol II · Organization and Management of Foreign Policy',
+    note: 'FRUS Being Researched. Interagency process, NSC org, Scowcroft model.',
+    q: '(NSC OR interagency OR "Policy Coordinating Committee" OR PCC OR Scowcroft OR "deputies committee" OR "principals committee" OR reorganization)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v4-soviet-policy',
+    name: 'Bush 41 Vol IV · Soviet Union, Russia, and Post-Soviet States: Policy',
+    note: 'FRUS Being Researched. Policy toward USSR/Russia, Lisbon Protocol, Nunn-Lugar, recognition of successor states.',
+    q: '(Soviet OR USSR OR Russia OR Yeltsin OR Gorbachev OR Ukraine OR Belarus OR Kazakhstan OR "Nunn-Lugar" OR Lisbon)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v5-east-europe',
+    name: 'Bush 41 Vol V · Eastern Europe',
+    note: 'FRUS Being Researched. Velvet revolutions, Poland/Hungary/Czechoslovakia/Romania/Bulgaria transitions.',
+    q: '(Poland OR Hungary OR Czechoslovakia OR Romania OR Bulgaria OR Walesa OR Havel OR "Eastern Europe" OR "Warsaw Pact")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v6-eastmed',
+    name: 'Bush 41 Vol VI · Eastern Mediterranean',
+    note: 'FRUS Being Researched. Cyprus, Greece, Turkey, Lebanon during Bush 41.',
+    q: '(Cyprus OR Greece OR Turkey OR Lebanon OR Aegean OR Demirel OR Papandreou)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v8-weur',
+    name: 'Bush 41 Vol VIII · Western Europe',
+    note: 'FRUS Being Researched. UK, France, Italy, Spain, EC relations during Bush 41.',
+    q: '(Britain OR "United Kingdom" OR France OR Italy OR Spain OR Thatcher OR Major OR Mitterrand OR Andreotti OR "European Community")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v9-germany',
+    name: 'Bush 41 Vol IX · Germany',
+    note: 'FRUS Being Researched. German reunification, Two Plus Four, NATO membership of united Germany.',
+    q: '(Germany OR German OR reunification OR unification OR "two plus four" OR "2+4" OR Kohl OR Genscher OR Berlin)',
+    from: 1989, to: 1991,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v14-arab-israeli',
+    name: 'Bush 41 Vol XIV · Arab-Israeli Dispute',
+    note: 'FRUS Being Researched. Madrid Conference, loan guarantees, Shamir/Rabin transition.',
+    q: '(Israel OR Palestinian OR PLO OR Arafat OR Madrid OR Shamir OR Rabin OR "loan guarantees" OR settlements)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v15-southasia',
+    name: 'Bush 41 Vol XV · South Asia',
+    note: 'FRUS Being Researched. India, Pakistan, Bangladesh, Sri Lanka, Afghanistan, Pressler Amendment.',
+    q: '(India OR Pakistan OR Bangladesh OR "Sri Lanka" OR Afghanistan OR Kashmir OR Pressler OR nuclear)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v16-seasia-pacific',
+    name: 'Bush 41 Vol XVI · Southeast Asia and the Pacific',
+    note: 'FRUS Being Researched. ASEAN, Cambodia settlement, Vietnam normalization, Philippines bases.',
+    q: '(ASEAN OR Cambodia OR Vietnam OR Philippines OR Indonesia OR Thailand OR Malaysia OR Singapore OR Burma OR Myanmar OR "Subic Bay" OR "Clark Air Base")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v18-japan-korea',
+    name: 'Bush 41 Vol XVIII · Japan; Korea',
+    note: 'FRUS Being Researched. SII talks, Gulf War burden-sharing, North Korea nuclear, Roh Tae-woo.',
+    q: '(Japan OR Korea OR "Roh Tae" OR SII OR "Structural Impediments" OR Pyongyang OR DPRK OR "burden sharing")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v20-africa',
+    name: 'Bush 41 Vol XX · North Africa; Sub-Saharan Africa',
+    note: 'FRUS Being Researched. Liberia, Somalia (early), Sudan, Maghreb, AIDS in Africa.',
+    q: '(Liberia OR Somalia OR Sudan OR Algeria OR Morocco OR Tunisia OR Nigeria OR Kenya OR Ethiopia OR Mengistu OR "Provide Relief")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v22-cuba-haiti-carib',
+    name: 'Bush 41 Vol XXII · Cuba; Haiti; Caribbean',
+    note: 'FRUS Being Researched. Cuban Democracy Act, Haiti coup against Aristide, Caribbean.',
+    q: '(Cuba OR Castro OR Haiti OR Aristide OR Caribbean OR Jamaica OR "Cuban Democracy Act" OR embargo OR Guantanamo)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v23-central-america',
+    name: 'Bush 41 Vol XXIII · Central America',
+    note: 'FRUS Being Researched. Nicaragua/Chamorro, El Salvador peace, Esquipulas follow-on, Guatemala.',
+    q: '(Nicaragua OR Chamorro OR "El Salvador" OR Guatemala OR Honduras OR "Costa Rica" OR Esquipulas OR Contra OR Sandinista OR ONUSAL)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v24-panama',
+    name: 'Bush 41 Vol XXIV · Panama, 1981–1992',
+    note: 'FRUS Being Researched. Operation Just Cause, Noriega, post-invasion governance, Canal handover prep.',
+    q: '(Panama OR Noriega OR "Just Cause" OR Endara OR Canal)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v25-south-america',
+    name: 'Bush 41 Vol XXV · South America',
+    note: 'FRUS Being Researched. Andean Initiative, drug war, MERCOSUR origins, Brazil/Argentina nuclear.',
+    q: '(Argentina OR Brazil OR Chile OR Peru OR Colombia OR Venezuela OR Bolivia OR Ecuador OR "Andean Initiative" OR Fujimori OR Pinochet OR MERCOSUR)',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v27-arms-nonprolif',
+    name: 'Bush 41 Vol XXVII · Arms Control and Nonproliferation',
+    note: 'FRUS Being Researched. START I, CFE, INF implementation, CWC, MTCR, NPT extension prep.',
+    q: '(START OR CFE OR INF OR "Chemical Weapons" OR CWC OR MTCR OR NPT OR nonproliferation OR "arms control")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+  {
+    id: 'bush41-v30-econ',
+    name: 'Bush 41 Vol XXX · Foreign Economic Policy',
+    note: 'FRUS Being Researched. NAFTA negotiation, Uruguay Round, G7 summits, IMF/World Bank.',
+    q: '(NAFTA OR "Uruguay Round" OR GATT OR G7 OR G-7 OR IMF OR "World Bank" OR "fast track" OR "trade policy")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2133275', '2163580'],
+  },
+  {
+    id: 'bush41-v32-iran',
+    name: 'Bush 41 Vol XXXII · Iran',
+    note: 'FRUS Being Researched. Hostage releases, Rafsanjani opening explored, dual containment precursors.',
+    q: '(Iran OR Tehran OR Rafsanjani OR hostage OR "dual containment")',
+    from: 1989, to: 1993,
+    scope: ['bush41', '2163580'],
+  },
+
+  // ===================================================================
+  // Clinton Administration (1993–2001)
+  // ===================================================================
+  {
+    id: 'clinton-v1-foundations',
+    name: 'Clinton Vol I · Foundations of Foreign Policy',
+    note: 'FRUS Being Researched. PDDs, doctrine speeches, democratic enlargement, "indispensable nation".',
+    q: '("Presidential Decision Directive" OR PDD OR "Presidential Review Directive" OR PRD OR "democratic enlargement" OR doctrine OR speechwriting)',
+    from: 1993, to: 2001,
+    scope: ['clinton', '7386739'],
+  },
+  {
+    id: 'clinton-v4-econ',
+    name: 'Clinton Vol IV · Foreign Economic Policy, 1993–1996',
+    note: 'FRUS Being Researched. NAFTA passage, WTO/Uruguay, peso crisis, APEC, Big Emerging Markets.',
+    q: '(NAFTA OR WTO OR "Uruguay Round" OR APEC OR "Big Emerging Markets" OR peso OR Mexico OR "fast track" OR Kantor OR Rubin)',
+    from: 1993, to: 1996,
+    scope: ['clinton', '2525022', '612954', '7386739'],
+  },
+  {
+    id: 'clinton-v15-balkans',
+    name: 'Clinton Vol XV · Wars in the Balkans, 1993–1995',
+    note: 'FRUS Being Researched. Bosnia war, Dayton, NATO airstrikes, Holbrooke shuttle, IFOR.',
+    q: '(Bosnia OR Yugoslavia OR Sarajevo OR Dayton OR Milosevic OR Karadzic OR Mladic OR Holbrooke OR IFOR OR Srebrenica OR Croatia)',
+    from: 1993, to: 1995,
+    scope: ['clinton', '7386505', '7386739'],
+  },
+  {
+    id: 'clinton-v20-fsu-arms',
+    name: 'Clinton Vol XX · Arms Control & Nonproliferation in the FSU, Dec 1991–Dec 1994',
+    note: 'FRUS Being Researched. Lisbon Protocol, Trilateral Statement, Ukraine denuclearization, Nunn-Lugar.',
+    q: '(Ukraine OR Belarus OR Kazakhstan OR "Lisbon Protocol" OR Trilateral OR "Nunn-Lugar" OR denuclearization OR Budapest OR "Massandra")',
+    from: 1993, to: 1995,
+    scope: ['clinton', 'bush41', '7388773', '7386739', '2163580'],
+  },
+  {
+    id: 'clinton-v22-europe-highlevel',
+    name: 'Clinton Vol XXII · Europe: High-Level Contacts',
+    note: 'FRUS Being Researched. Presidential & secretarial meetings with European leaders.',
+    q: '(summit OR Yeltsin OR Major OR Blair OR Chirac OR Kohl OR Schroeder OR Prodi OR Aznar OR "high-level" OR bilateral)',
+    from: 1993, to: 2001,
+    scope: ['clinton', '7386505', '7386739'],
+  },
+  {
+    id: 'clinton-v24-europe-policy',
+    name: 'Clinton Vol XXIV · Europe: Policy, 1997–2000',
+    note: 'FRUS Being Researched. NATO Madrid Summit, second-tranche enlargement, Russia-NATO Founding Act, Kosovo aftermath.',
+    q: '(NATO OR "Partnership for Peace" OR enlargement OR Madrid OR Helsinki OR "Founding Act" OR Kosovo OR ESDP)',
+    from: 1997, to: 2001,
+    scope: ['clinton', '7386505', '7386739'],
+  },
+  {
+    id: 'clinton-v25-northern-ireland',
+    name: 'Clinton Vol XXV · Northern Ireland Peace Process',
+    note: 'FRUS Being Researched. Good Friday Agreement, Mitchell talks, Adams visa, IRA decommissioning.',
+    q: '("Northern Ireland" OR "Good Friday" OR IRA OR "Gerry Adams" OR Mitchell OR Stormont OR "Sinn Fein" OR Trimble OR Hume OR decommissioning)',
+    from: 1993, to: 2000,
+    scope: ['clinton', '7386505', '7386739'],
+  },
+  {
+    id: 'clinton-v27-southern-africa',
+    name: 'Clinton Vol XXVII · South Africa; Southern Africa',
+    note: 'FRUS Being Researched. Mandela presidency, post-apartheid policy, SADC, Angola, Mozambique.',
+    q: '("South Africa" OR Mandela OR Mbeki OR apartheid OR SADC OR Angola OR Mozambique OR Zimbabwe OR Namibia OR Botswana)',
+    from: 1993, to: 2001,
+    scope: ['clinton', '7385959', '7386739'],
+  },
+  {
+    id: 'clinton-v28-rwanda',
+    name: 'Clinton Vol XXVIII · Rwanda; Central Africa',
+    note: 'FRUS Being Researched. UNAMIR, decision not to intervene, Great Lakes refugees, Zaire/Congo war.',
+    q: '(Rwanda OR Burundi OR Zaire OR Congo OR Kabila OR UNAMIR OR "Great Lakes" OR Hutu OR Tutsi OR genocide OR Mobutu)',
+    from: 1993, to: 2000,
+    scope: ['clinton', '7385959', '7386739'],
+  },
+  {
+    id: 'clinton-v32-central-america',
+    name: 'Clinton Vol XXXII · Central America',
+    note: 'FRUS Being Researched. Post-conflict Central America, Mitch reconstruction, immigration, drug interdiction.',
+    q: '(Nicaragua OR "El Salvador" OR Guatemala OR Honduras OR "Costa Rica" OR Panama OR Mitch OR ESF OR "Central America")',
+    from: 1993, to: 2001,
+    scope: ['clinton', '7386739'],
   },
 ];
