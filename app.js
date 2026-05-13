@@ -32,24 +32,28 @@ const SAVED_KEY   = 'nara-scout.saved';
 const LISTS_KEY   = 'nara-scout.lists';
 
 // Featured sub-collections used by quick-scopes (subset of NSC children).
-// NAIDs discovered empirically via /records/parent-search.
+// NAIDs discovered empirically via /records/parent-search and catalog queries.
+const QUICK_NSC_REAGAN  = ['1188','40359468','12011340','12024929','12024797','12024920','67603959','60693877','12011341','364672879','364776614','12011342','7451593','12024979','12024916','12024796']; // Reagan NSC umbrella (1188) + 15 directorates
 const QUICK_NSC_BUSH    = ['2163580'];   // Bush NSC umbrella
 const QUICK_NSC_CLINTON = ['7386739','7388773','7386505','7385959','7388748','7388753','7388760','7388763','7388766','7388768','7388775','7388800','7388802','7388805','7388808','7388835','7388836','7388837','7388838','7388840','7388841','7388842','7388843','7388844'];
-const QUICK_ECON        = ['2133275','2525022','612954'];  // Bush Cabinet Affairs + Clinton NEC + Clinton DPC
-const QUICK_NONPROLIF   = ['7388773'];                     // Clinton NSC Nonprolif
-const QUICK_EUROPE      = ['7386505'];                     // Clinton NSC European Affairs
-const QUICK_ASIA        = ['7385963','7385964'];           // Clinton NSC Asian Affairs (approx; refresh-lists may improve)
-const QUICK_LATAM       = ['7385962','7386504'];           // Clinton NSC Inter-American Affairs
-const QUICK_AFRICA      = ['7385959'];                     // Clinton NSC African Affairs
-const QUICK_ME          = ['7385957','7385958'];           // Clinton NSC Near East & South Asia
+const QUICK_ECON        = ['6120375','7821173','2133275','2525022','612954']; // Reagan DPC + Reagan EPC + Bush Cabinet + Clinton NEC + Clinton DPC
+const QUICK_NONPROLIF   = ['12011342','7388773'];          // Reagan NSC Defense Programs & Arms Control + Clinton NSC Nonprolif
+const QUICK_EUROPE      = ['7451593','7386505'];           // Reagan NSC European & Soviet Affairs + Clinton NSC European Affairs
+const QUICK_ASIA        = ['12024916','7385963','7385964']; // Reagan NSC Asian Affairs + Clinton NSC Asian Affairs
+const QUICK_LATAM       = ['12024796','7385962','7386504']; // Reagan NSC Latin American Affairs + Clinton NSC Inter-American Affairs
+const QUICK_AFRICA      = ['40359468','7385959'];          // Reagan NSC African Affairs + Clinton NSC African Affairs
+const QUICK_ME          = ['12024979','7385957','7385958']; // Reagan NSC Near East & South Asia + Clinton NSC NESA
 
 // Bootstrapped collection lists. These can be overridden at runtime
 // from localStorage when the user clicks "Refresh collection lists".
+const DEFAULT_REAGAN_COLLECTIONS = '7585086,12007122,2594004,5730649,7821173,5730648,2635476,5701098,472449781,7551433,24331301,2601055,6004170,5720683,7821289,2601096,7882368,60693877,6004015,12011341,2600887,7741393,7890432,5701104,40359468,57355553,2635529,12024929,12024797,5701112,7868625,6004166,6911567,364672879,12011340,6120375,46746357,2618827,6816362,6909317,44161439,2600947,7481889,12014583,2601061,518071940,5686574,7451593,2601090,567682,5730543,12024979,2601117,7890429,7023807,499916571,6119492,2612072,7594725,12024920,7284020,6120374,518071935,2596197,67603959,2635474,6004082,5730362,5701106,7829228,364776614,7027904,12011342,2600944,2618938,12024916,7829230,2600746,12024796,7789240,6120376,2600967,6120363,1188'.split(',');
+
 const DEFAULT_BUSH41_COLLECTIONS = '138924378,595138,2163559,567670,472456042,2163595,2163571,488763126,2163588,720635,2163589,650839,284825749,2163563,2163599,488763107,2163594,2163570,2163558,2103233,488763114,2163600,2579957,2163569,2575518,2163581,2163580,2133275,2163582,2163565,2163587,2163575,2163562,2163576,2163584,2575614,2163593,488763132,2163556,2577734,578954,2163572,2163566,2163561,2163573,2578586,2163596,2163590,580456,2163574,490670241,2163567,573356,2163578,2575552,2579595,2163585,2163568,2163597,2163579,2579969,2163592,572260,922149,891537,650835,2579439,2578935,2579607,2575558'.split(',');
 
 const DEFAULT_CLINTON_COLLECTIONS = '1224781,2525029,2524453,2524447,101784492,119564603,2524459,2525018,2534568,2525017,7386739,2534574,2524458,2534575,2524450,7385959,342802399,2525059,612954,2534565,7386505,2524451,2525022,2524466,5957395,594648,2524452,2534573,2534569,7388773,2534571,1766805,594546,2525058,2534580,6005960,2525024,2525016,7388844,630636,2525025,2524457,2524467,2524455,2525015,2524463,2524449,7388838,7385958,7388802,7385965,2525028,2534570,2534584,7349214,7388808,7388760,594462,6107047,6107005,2534582,2521316,2525026,2534572,2525032,2525014,2534567,2524460,2525057,2525021,7388748,6120199,7385961,7410105,2525031,7388836,2524456,7388842,7385963,7385962,2525056,2524462,71404562,627797,7388775,7388763,7388751,2534586,7385957,7388766,6005967,2524461,7387422,7385960,20015396,7388800,7388843,7386837,7387463,7386504,7385723,2524454,7385964,613035,6012491,7388805,6120204,1040718,2525020,6106992,7388841,2525027,7387655,7387424,7388837,6005964,7388840,7385966,7388835,6106851,7388753,7387376,7388768,6012502,6107001,5957378,6005962,6106972,6107050,18515054,6120129,6014648'.split(',');
 
-let BUSH41_COLLECTIONS  = loadList('bush41', DEFAULT_BUSH41_COLLECTIONS);
+let REAGAN_COLLECTIONS  = loadList('reagan',  DEFAULT_REAGAN_COLLECTIONS);
+let BUSH41_COLLECTIONS  = loadList('bush41',  DEFAULT_BUSH41_COLLECTIONS);
 let CLINTON_COLLECTIONS = loadList('clinton', DEFAULT_CLINTON_COLLECTIONS);
 
 function loadList(key, fallback) {
@@ -98,10 +102,11 @@ function applyTopicPack(pack) {
   $('to').value = pack.to || '';
   // Reset all scope checkboxes
   document.querySelectorAll('.featured input[type=checkbox]').forEach(cb => cb.checked = false);
+  $('scope_reagan').checked = pack.scope.includes('reagan');
   $('scope_bush41').checked = pack.scope.includes('bush41');
   $('scope_clinton').checked = pack.scope.includes('clinton');
   for (const naid of pack.scope) {
-    if (naid === 'bush41' || naid === 'clinton') continue;
+    if (naid === 'reagan' || naid === 'bush41' || naid === 'clinton') continue;
     const cb = document.querySelector('.featured input[data-naid="' + naid + '"]');
     if (cb) cb.checked = true;
   }
@@ -125,7 +130,7 @@ function selectedNaids() {
   const anyQuick = document.querySelectorAll('.quick-scopes input:checked').length > 0;
 
   if (anyQuick) {
-    if (want('qs_nsc_only'))         { QUICK_NSC_BUSH.forEach(n=>set.add(n)); QUICK_NSC_CLINTON.forEach(n=>set.add(n)); }
+    if (want('qs_nsc_only'))         { QUICK_NSC_REAGAN.forEach(n=>set.add(n)); QUICK_NSC_BUSH.forEach(n=>set.add(n)); QUICK_NSC_CLINTON.forEach(n=>set.add(n)); }
     if (want('qs_econ_only'))        QUICK_ECON.forEach(n=>set.add(n));
     if (want('qs_nonprolif'))        QUICK_NONPROLIF.forEach(n=>set.add(n));
     if (want('qs_regional_europe'))  QUICK_EUROPE.forEach(n=>set.add(n));
@@ -134,6 +139,7 @@ function selectedNaids() {
     if (want('qs_regional_africa'))  QUICK_AFRICA.forEach(n=>set.add(n));
     if (want('qs_regional_me'))      QUICK_ME.forEach(n=>set.add(n));
   } else {
+    if (want('scope_reagan'))  REAGAN_COLLECTIONS.forEach(n => set.add(n));
     if (want('scope_bush41'))  BUSH41_COLLECTIONS.forEach(n => set.add(n));
     if (want('scope_clinton')) CLINTON_COLLECTIONS.forEach(n => set.add(n));
   }
@@ -657,6 +663,7 @@ function updatePermalink(s) {
   if (s.perPage) params.set('perPage', s.perPage);
   // scope state
   const scopes = [];
+  if ($('scope_reagan').checked) scopes.push('reagan');
   if ($('scope_bush41').checked) scopes.push('bush41');
   if ($('scope_clinton').checked) scopes.push('clinton');
   document.querySelectorAll('.featured input:checked').forEach(cb => scopes.push(cb.dataset.naid));
@@ -679,11 +686,12 @@ function loadFromPermalink() {
   if (params.get('perPage')) $('perPage').value = params.get('perPage');
 
   const scopes = (params.get('scope') || '').split(',').filter(Boolean);
+  $('scope_reagan').checked = scopes.includes('reagan');
   $('scope_bush41').checked = scopes.includes('bush41');
   $('scope_clinton').checked = scopes.includes('clinton');
   document.querySelectorAll('.featured input[type=checkbox]').forEach(cb => cb.checked = false);
   for (const s of scopes) {
-    if (s === 'bush41' || s === 'clinton') continue;
+    if (s === 'reagan' || s === 'bush41' || s === 'clinton') continue;
     const cb = document.querySelector('.featured input[data-naid="' + s + '"]');
     if (cb) cb.checked = true;
   }
@@ -707,21 +715,24 @@ function copyPermalink() {
 async function refreshCollectionLists() {
   $('refreshStatus').textContent = 'Querying NARA for current collection lists...';
   try {
-    const [bush, clinton] = await Promise.all([
-      discoverCollections('George Bush'),
-      discoverCollections('William J. Clinton'),
+    const [reagan, bush, clinton] = await Promise.all([
+      discoverCollections('Reagan Administration', 'Reagan'),
+      discoverCollections('George Bush', 'Bush'),
+      discoverCollections('William J. Clinton', 'Clinton'),
     ]);
-    if (bush.length)    { BUSH41_COLLECTIONS  = bush;    saveList('bush41', bush); }
+    if (reagan.length)  { REAGAN_COLLECTIONS  = reagan;  saveList('reagan',  reagan); }
+    if (bush.length)    { BUSH41_COLLECTIONS  = bush;    saveList('bush41',  bush); }
     if (clinton.length) { CLINTON_COLLECTIONS = clinton; saveList('clinton', clinton); }
-    $('count_bush41').textContent = BUSH41_COLLECTIONS.length ? '(' + BUSH41_COLLECTIONS.length + ')' : '';
+    $('count_reagan').textContent  = REAGAN_COLLECTIONS.length  ? '(' + REAGAN_COLLECTIONS.length + ')'  : '';
+    $('count_bush41').textContent  = BUSH41_COLLECTIONS.length  ? '(' + BUSH41_COLLECTIONS.length + ')'  : '';
     $('count_clinton').textContent = CLINTON_COLLECTIONS.length ? '(' + CLINTON_COLLECTIONS.length + ')' : '';
-    $('refreshStatus').textContent = 'Refreshed: ' + bush.length + ' Bush 41 + ' + clinton.length + ' Clinton collections.';
+    $('refreshStatus').textContent = 'Refreshed: ' + reagan.length + ' Reagan + ' + bush.length + ' Bush 41 + ' + clinton.length + ' Clinton.';
   } catch (err) {
     $('refreshStatus').textContent = 'Refresh failed: ' + err.message;
   }
 }
 
-async function discoverCollections(adminQuery) {
+async function discoverCollections(adminQuery, titleMustContain) {
   const params = new URLSearchParams();
   params.append('q', adminQuery);
   params.append('levelOfDescription', 'collection');
@@ -735,8 +746,9 @@ async function discoverCollections(adminQuery) {
   const hits = (body.hits && body.hits.hits) || [];
   return hits.map(h => {
     const rec = (h._source && (h._source.record || h._source)) || h;
-    return String(rec.naId || '');
-  }).filter(Boolean);
+    return { naId: String(rec.naId || ''), title: rec.title || '' };
+  }).filter(o => o.naId && (!titleMustContain || o.title.includes(titleMustContain)))
+    .map(o => o.naId);
 }
 
 // =====================================================================
@@ -784,7 +796,8 @@ function attachListeners() {
 function init() {
   renderTopicPacks();
   attachListeners();
-  $('count_bush41').textContent = '(' + BUSH41_COLLECTIONS.length + ')';
+  $('count_reagan').textContent  = '(' + REAGAN_COLLECTIONS.length + ')';
+  $('count_bush41').textContent  = '(' + BUSH41_COLLECTIONS.length + ')';
   $('count_clinton').textContent = '(' + CLINTON_COLLECTIONS.length + ')';
   loadFromPermalink();
   renderSavedPanel();

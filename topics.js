@@ -13,11 +13,10 @@
 //             "clinton"    - all 132 Clinton administration collections
 //             numeric NAID - that specific collection
 //
-// Volumes for the Reagan administration (and earlier) are listed below for
-// completeness, but NARA Scout's collection scope is Bush 41 + Clinton, so
-// those packs default to running against both administrations (the records
-// most relevant to follow-on policy continuity will surface; for pre-1989
-// material consult the Reagan Library catalog separately).
+// Scope now includes 83 Reagan-administration collections (incl. 17 Reagan
+// NSC directorate collections) plus all Bush 41 and Clinton collections.
+// Reagan packs are tuned to Reagan-era records; Bush 41 packs include some
+// Reagan continuity material where relevant.
 //
 // Edit freely; the UI rebuilds itself from this list.
 
@@ -28,42 +27,42 @@ window.TOPIC_PACKS = [
   {
     id: 'reagan-weur',
     name: 'Reagan Vol VIII · Western Europe, 1985–1988',
-    note: 'FRUS Being Researched. Reagan-era Western Europe; surfaces transition-era and continuity material in Bush 41 NSC.',
-    q: '(Britain OR France OR Germany OR Italy OR Spain OR "Western Europe" OR Thatcher OR Mitterrand OR Kohl)',
-    from: 1989, to: 1992,
-    scope: ['bush41', '2163580'],
+    note: 'FRUS Being Researched. Reagan-era Western Europe; NSC European & Soviet Affairs directorate central.',
+    q: '(Britain OR France OR Germany OR Italy OR Spain OR "Western Europe" OR Thatcher OR Mitterrand OR Kohl OR Andreotti)',
+    from: 1985, to: 1988,
+    scope: ['reagan', '1188', '7451593'],
   },
   {
     id: 'reagan-iran-contra',
     name: 'Reagan Vol XXIII · Iran-Contra Affair, 1985–1988',
-    note: 'FRUS Being Researched. Iran-Contra aftermath, Walsh investigation, Weinberger pardon — Bush 41 holdings are central.',
-    q: '("Iran-Contra" OR Weinberger OR Walsh OR Poindexter OR North OR Hakim OR Secord OR pardon)',
-    from: 1989, to: 1993,
-    scope: ['bush41'],
+    note: 'FRUS Being Researched. Iran-Contra primary records (Reagan NSC) plus Bush 41 aftermath, Walsh investigation, Weinberger pardon.',
+    q: '("Iran-Contra" OR "Iran Contra" OR Weinberger OR Walsh OR Poindexter OR North OR Hakim OR Secord OR Casey OR pardon)',
+    from: 1985, to: 1993,
+    scope: ['reagan', 'bush41', '1188', '12024797', '60693877'],
   },
   {
     id: 'reagan-trade-monpol',
     name: 'Reagan Vol XXXVII · Trade; Monetary Policy; Industrialized Country Cooperation, 1985–1988',
-    note: 'FRUS Being Researched. Plaza Accord, Louvre Accord, G7; transition material in Bush 41 Cabinet & Treasury holdings.',
-    q: '("Plaza Accord" OR Louvre OR G7 OR G-7 OR "trade policy" OR "monetary policy" OR "exchange rate" OR yen OR deutschmark)',
-    from: 1989, to: 1992,
-    scope: ['bush41', '2133275'],
+    note: 'FRUS Being Researched. Plaza Accord, Louvre Accord, G7; Reagan EPC and NSC International Economic Affairs.',
+    q: '("Plaza Accord" OR Louvre OR G7 OR G-7 OR "trade policy" OR "monetary policy" OR "exchange rate" OR yen OR deutschmark OR "Uruguay Round")',
+    from: 1985, to: 1988,
+    scope: ['reagan', '7821173', '67603959'],
   },
   {
     id: 'reagan-refugees',
     name: 'Reagan Vol XLII · Refugees and Immigration, 1975–1984',
-    note: 'FRUS Being Researched. Refugee/immigration policy; Bush 41 follow-on holdings on Cuban, Haitian, Vietnamese flows.',
-    q: '(refugee OR refugees OR immigration OR asylum OR "Mariel" OR "boat people" OR resettlement)',
-    from: 1989, to: 1992,
-    scope: ['bush41', '2163580'],
+    note: 'FRUS Being Researched. Refugee/immigration policy through Reagan first term; Cuban, Haitian, Vietnamese, Salvadoran flows.',
+    q: '(refugee OR refugees OR immigration OR asylum OR Mariel OR "boat people" OR resettlement OR Indochinese)',
+    from: 1981, to: 1984,
+    scope: ['reagan', '1188', '6120375'],
   },
   {
     id: 'reagan-eastmed',
     name: 'Reagan Vol XLV · Eastern Mediterranean, 1981–1988',
-    note: 'FRUS Being Researched. Cyprus, Greece, Turkey, Lebanon; Bush 41 NSC continuity.',
-    q: '(Cyprus OR Greece OR Turkey OR Lebanon OR Aegean OR PKK OR Cyprus)',
-    from: 1989, to: 1992,
-    scope: ['bush41', '2163580'],
+    note: 'FRUS Being Researched. Cyprus, Greece, Turkey, Lebanon; Reagan NSC Near East & South Asia central.',
+    q: '(Cyprus OR Greece OR Turkey OR Lebanon OR Aegean OR PKK OR Beirut OR Papandreou OR Demirel OR Ozal)',
+    from: 1981, to: 1988,
+    scope: ['reagan', '1188', '12024979'],
   },
 
   // ===================================================================
